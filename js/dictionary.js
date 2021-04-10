@@ -1,7 +1,7 @@
 //--------------------------------------------------------------------
 class Dictionary extends Array {
   // Construct a dictionary of atoms of size w x h.
-  constructor(w, h, numAtoms) {
+  constructor(w, h) {
     super();
     this.w = w;
     this.h = h;
@@ -9,23 +9,32 @@ class Dictionary extends Array {
     this.domDictionary = document.getElementById('dictionary');
     this.domOverlap = document.getElementById('overlap');
     this.atomViews = new Array();
-    const N = (numAtoms || 0);
-    for (let i=0; i<N; ++i) this.addAtom();
     // Keep track of how often each atom gets used
     this.dutyCycle = new Array();
   }
   addAtom(atom) {
     if (atom===undefined) atom = new Atom(this.w, this.h);
-    this.push(atom);
-    let view = new AtomView(atom);
-    view.render();
-    this.domDictionary.appendChild(view.canvas);
-    this.atomViews.push(view);
+    const idx = this.length;
+    this[idx] = atom;
+    if (this.atomViews[idx] === undefined) {
+      let view = new AtomView(atom);
+      view.render();
+      this.atomViews[idx] = view;
+      this.domDictionary.appendChild(view.canvas);
+    }
+    else {
+      this.atomViews[idx].atom = atom;
+      this.atomViews[idx].render();
+    }
   }
   normalize() {
     this.forEach( function( atom ) {
       atom.normalize();
     } );
+  }
+  clear() {
+    this.length = 0;
+    this.atomViews.forEach( (view) => view.clear() );
   }
   // createOverlap(atom) {
   //   const ni = Math.sqrt(this.M), nj = ni;

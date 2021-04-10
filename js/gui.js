@@ -13,6 +13,7 @@ class GUI extends dat.GUI {
 	  this.randomAtoms = false;
     this.add( this, "randomAtoms" )
       .onChange( function( value ) {
+        dictionary.clear();
       } );
     //----------------------------------------------------------------
 	  this.enableLearning = false;

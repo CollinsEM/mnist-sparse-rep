@@ -48,7 +48,7 @@ class AtomView {
         max = Math.max(max, this.atom[ij]);
       }
     }
-    let imgData = this.context.createImageData(this.w, this.h);
+    let imgData = this.context.getImageData(0, 0, this.w, this.h);
     for (let j=0, ij=0; j<this.h; ++j) {
       for (let i=0; i<this.w; ++i, ++ij) {
         for (let k=0; k<3; ++k) {
@@ -56,6 +56,18 @@ class AtomView {
           imgData.data[4*ij+k] = Math.floor(255*this.atom[ij]);
         }
         imgData.data[4*ij+3] = 255;
+      }
+    }
+    this.context.putImageData(imgData, 0, 0);
+  }
+  clear() {
+    let imgData = this.context.getImageData(0, 0, this.w, this.h);
+    for (let j=0, ij=0; j<this.h; ++j) {
+      for (let i=0; i<this.w; ++i, ++ij) {
+        for (let k=0; k<3; ++k) {
+          imgData.data[4*ij+k] = 0;
+        }
+        imgData.data[4*ij+3] = 0;
       }
     }
     this.context.putImageData(imgData, 0, 0);
