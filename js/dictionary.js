@@ -11,6 +11,8 @@ class Dictionary extends Array {
     this.atomViews = new Array();
     const N = (numAtoms || 0);
     for (let i=0; i<N; ++i) this.addAtom();
+    // Keep track of how often each atom gets used
+    this.dutyCycle = new Array();
   }
   addAtom(atom) {
     if (atom===undefined) atom = new Atom(this.w, this.h);

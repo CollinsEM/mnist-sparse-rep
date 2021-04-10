@@ -88,6 +88,7 @@ class SensorPatch {
     domInput.append(canvas);
     // Create canvas objects to show the decomposed signal
     const domAtoms = document.createElement('td');
+    domAtoms.style.width = parseInt(17*maxAtoms).toString() + 'px'
     domRow.append(domAtoms);
     this.ctxAtoms = new Array();
     // Create canvases to show decomposed signal
@@ -177,15 +178,17 @@ class SensorPatch {
           // Save an index to the filter with the strongest response
           if (AtR[n] > AtR[nMax]) nMax = n;
         }
-        S.add(nMax);
-        // Store the index of the winning filter
-        this.S[c][k] = nMax;
-        // Store the correlation coefficient for the winning filter
-        this.Z[c][k] = AtR[nMax];
-        // Update the residual by removing the contribution of the
-        // winning filter
-        for (let m=0; m<M; ++m) this.R[c][m] -= AtR[nMax]*dict[nMax][m];
-        E = L2Sq(this.R[c]);
+        if (AtR[nMax] > 0) {
+          S.add(nMax);
+          // Store the index of the winning filter
+          this.S[c][k] = nMax;
+          // Store the correlation coefficient for the winning filter
+          this.Z[c][k] = AtR[nMax];
+          // Update the residual by removing the contribution of the
+          // winning filter
+          for (let m=0; m<M; ++m) this.R[c][m] -= AtR[nMax]*dict[nMax][m];
+          E = L2Sq(this.R[c]);
+        }
       }
       while (k<maxAtoms) {
         this.S[c][k] = 0;

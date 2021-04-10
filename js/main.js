@@ -4,7 +4,7 @@ const sqrt3 = Math.sqrt(3);
 const NI = 4, NJ = 4;
 const dictSize = NI*NJ*8;
 const sparsity = 0.02;
-const maxAtoms = Math.max(dictSize*sparsity, 5);
+const maxAtoms = Math.floor(2*dictSize*sparsity);
 
 var camera, scene, renderer, stats, gui;
 var atlas, dictionary, sensor;
@@ -56,9 +56,8 @@ function render() {
   }
   else {
     dt = 0;
-    atlas.updateDigit();
     if (dictionary.length < dictSize) {
-      const digit = atlas.getImageData();
+      const digit = atlas.getTrainDigit();
       document.getElementById('status').innerHTML = "Initializing Dictionary";
       const W = digit.width;
       const H = digit.height;
@@ -79,11 +78,18 @@ function render() {
           }
           // If the subsample of the image extracted above is blank,
           // then just use a random atom.
-          dictionary.addAtom(sum>10 ? new Atom(dx, dy, R) : new Atom(dx, dy));
+          if (gui.randomAtoms) {
+            dictionary.addAtom();
+          }
+          else if (sum > 10) {
+            dictionary.addAtom(new Atom(dx, dy, R));
+          }
+          if (dictionary.length >= dictSize) return;
         }
       }
     }
     else if (gui.enableLearning) {
+      const digit = atlas.getTrainDigit();
       document.getElementById('status').innerHTML = "Updating Dictionary";
       const M = dictionary.M;
       const N = dictionary.length;
@@ -92,7 +98,7 @@ function render() {
       doLearning = false;
     }
     else {
-      const digit = atlas.getImageData();
+      const digit = atlas.getTestDigit();
       document.getElementById('status').innerHTML = "Encoding Samples";
       sensor.encode(digit, dictionary);
       sensor.render();

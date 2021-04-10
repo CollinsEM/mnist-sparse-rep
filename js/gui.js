@@ -25,7 +25,11 @@ class GUI extends dat.GUI {
       .onChange( function( value ) {
         sensor.forEach( function( patch ) {
           patch.K = value;
+          patch.ctxAtoms.forEach( function( ctx ) {
+            ctx.clearRect(0, 0, 28, 28);
+          } );
         } );
+        dt = DT; // Force a graphics update
       } );
     // //----------------------------------------------------------------
     // this.seqMenu = this.addFolder("MNIST Sequence");
