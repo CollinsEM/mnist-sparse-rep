@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Orthogonal Matching Pursuit</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+		 body {
+			 /* color: #cccccc; */
+			 font-family:Monospace;
+			 font-size:13px;
+			 text-align:center;
+			 background-color: #8888ff;
+			 margin: 0px;
+			 /* overflow: hidden; */
+		 }
+		 #info {
+			 position: absolute;
+			 top: 0px; width: 100%;
+			 padding: 5px;
+		 }
+     #dictionary {
+         margin: 5px;
+     }
+     #overlap {
+         margin: 5px;
+     }
+     .filter {
+         padding: 5px;
+     }
+		 a {
+			 color: #0080ff;
+		 }
+     table {
+         margin-left: auto;
+         margin-right: auto;
+         table-layout: auto;
+         width: auto;
+     }
+     th {
+         width: 100px;
+     }
+     td {
+         width: 100px;
+     }
+		</style>
+		<script src="js/libs/dat.gui.min.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		<script src="js/libs/three.min.js"></script>
+		<script src="js/libs/OrbitControls.js"></script>
+    
+		<script src="js/atlas.js"></script>
+		<script src="js/atom.js"></script>
+		<script src="js/dictionary.js"></script>
+		<script src="js/omp.js"></script>
+		<script src="js/mod.js"></script>
+		<script src="js/ksvd.js"></script>
+		<script src="js/gui.js"></script>
+		<script src="js/least_squares.js"></script>
+		<script src="js/main.js"></script>
+	</head>
+	<body>
+    <img id="atlas" hidden=true src="textures/testAtlas.png">
+    <div><label id="status">Initializing</label></div>
+    <table>
+      <tr>
+        <th>Input<br/>Signal</th>
+        <th>Extracted<br/>Signal</th>
+      </tr>
+      <tr>
+        <td id="input-signal"></br></td>
+        <td id="output-signal"></br></td>
+      </tr>
+    </table>
+		<div><label>Sensor Patches</label></br>
+      <table id="omp-output">
+        <tr>
+          <th>Input<br/>Signal</th>
+          <th>Active<br/>Atoms</th>
+          <th>Extracted<br/>Signal</th>
+          <th>Residual</th>
+        </tr>
+      </table>
+    </div>
+		<div id="dictionary"><label>Dictionary</label></br></div>
+  </body>
+</html>
