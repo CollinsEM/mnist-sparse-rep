@@ -2,8 +2,9 @@
 
 const sqrt3 = Math.sqrt(3);
 const NI = 4, NJ = 4;
-const maxAtoms = NI*NJ*8;
+const dictSize = NI*NJ*8;
 const sparsity = 0.02;
+const maxAtoms = Math.max(dictSize*sparsity, 5);
 
 var camera, scene, renderer, stats, gui;
 var atlas, dictionary, sensor;
@@ -56,7 +57,7 @@ function render() {
   else {
     dt = 0;
     atlas.updateDigit();
-    if (dictionary.length < maxAtoms) {
+    if (dictionary.length < dictSize) {
       const digit = atlas.getImageData();
       document.getElementById('status').innerHTML = "Initializing Dictionary";
       const W = digit.width;
@@ -82,7 +83,7 @@ function render() {
         }
       }
     }
-    else if (gui.enableLearning && doLearning) {
+    else if (gui.enableLearning) {
       document.getElementById('status').innerHTML = "Updating Dictionary";
       const M = dictionary.M;
       const N = dictionary.length;

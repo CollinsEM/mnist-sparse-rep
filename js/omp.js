@@ -15,12 +15,20 @@ class Sensor extends Array {
         this[j*ni+i] = new SensorPatch(i*dx, j*dy, dx, dy);
       }
     }
+    
     let canvas = document.createElement('canvas');
     canvas.className = "filter";
     canvas.width = 28;
     canvas.height = 28;
     this.context = canvas.getContext('2d');
     document.getElementById('output-signal').append(canvas);
+    
+    canvas = document.createElement('canvas');
+    canvas.className = "filter";
+    canvas.width = 28;
+    canvas.height = 28;
+    this.residual = canvas.getContext('2d');
+    document.getElementById('residual').append(canvas);
   }
   encode(digit, dict) {
     this.forEach( function( arg ) {
@@ -35,6 +43,8 @@ class Sensor extends Array {
       for (let i=0; i<ni; ++i) {
         let img = this[j*ni+i].ctxSignal.getImageData(0, 0, dx, dy);
         this.context.putImageData(img, i*dx, j*dy, 0, 0, dx, dy);
+        let res = this[j*ni+i].ctxResidual.getImageData(0, 0, dx, dy);
+        this.residual.putImageData(res, i*dx, j*dy, 0, 0, dx, dy);
       }
     }
   }
@@ -54,14 +64,14 @@ class SensorPatch {
     this.dx = dx;
     this.dy = dy;
     // Support for the representation (list of activated atoms for each color)
-    this.K = Math.floor(maxAtoms*sparsity);
+    this.K = Math.floor(dictSize*sparsity);
     this.R = []; // Residual in each color band
     this.S = []; // Atom support in each color band
     this.Z = []; // Atom coefficients in each color band
     for (let c=0; c<3; ++c) {
       this.R[c] = new Float32Array(this.dx*this.dy);
-      this.S[c] = new Uint8Array(this.K);
-      this.Z[c] = new Float32Array(this.K);
+      this.S[c] = new Uint8Array(maxAtoms);
+      this.Z[c] = new Float32Array(maxAtoms);
     }
     // Create canvas objects to show the decomposed signal
     var canvas;
@@ -81,7 +91,7 @@ class SensorPatch {
     domRow.append(domAtoms);
     this.ctxAtoms = new Array();
     // Create canvases to show decomposed signal
-    for (let k=0; k<this.K; ++k) {
+    for (let k=0; k<maxAtoms; ++k) {
       canvas = document.createElement('canvas');
       canvas.className = "filter";
       canvas.width = dx;
@@ -152,7 +162,8 @@ class SensorPatch {
       // Clear the support list
       S.clear();
       // Find the K most active filters
-      for (let k=0; k<this.K && E>EPS && k<N; ++k) {
+      var k;
+      for (k=0; k<this.K && E>EPS && k<N; ++k) {
         // Track the filter with the highest activation (initialize to
         // the first filter that is not already in the support).
         let nMax = 0; for (nMax=0; S.has(nMax); ++nMax) { }
@@ -176,6 +187,11 @@ class SensorPatch {
         for (let m=0; m<M; ++m) this.R[c][m] -= AtR[nMax]*dict[nMax][m];
         E = L2Sq(this.R[c]);
       }
+      while (k<maxAtoms) {
+        this.S[c][k] = 0;
+        this.Z[c][k] = 0;
+        ++k;
+      }
     }
     // console.log(this.S, this.Z);
   }
@@ -194,16 +210,18 @@ class SensorPatch {
     }
     for (let k=0; k<this.K && k<N; ++k) {
       let atom = this.ctxAtoms[k].getImageData(0, 0, ni, nj);
+      let visible = false;
       for (let c=0; c<3; ++c) {
-        const n = this.S[c][k]; // Select atom
-        const z = this.Z[c][k];
-        const A = dict[n];
+        const n = this.S[c][k]; // Atom index
+        const z = this.Z[c][k]; // Atom coefficient
+        const A = dict[n];      // Atom basis vector
         for (let m=0; m<M; ++m) {
           atom.data[4*m+c]    = z*A[m];
           output.data[4*m+c] += z*A[m];
         }
+        visible |= (z>0);
       }
-      for (let m=0; m<M; ++m) atom.data[4*m+3] = 255;
+      for (let m=0; m<M; ++m) atom.data[4*m+3] = (visible ? 255 : 0);
       this.ctxAtoms[k].putImageData(atom, 0, 0);
     }
     this.ctxSignal.putImageData(output, 0, 0);

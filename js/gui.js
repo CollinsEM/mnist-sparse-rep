@@ -19,6 +19,14 @@ class GUI extends dat.GUI {
     this.add( this, "enableLearning" )
       .onChange( function( value ) {
       } );
+    //----------------------------------------------------------------
+	  this.numAtoms = Math.floor(dictSize*sparsity);
+    this.add( this, "numAtoms", 1, maxAtoms, 1 )
+      .onChange( function( value ) {
+        sensor.forEach( function( patch ) {
+          patch.K = value;
+        } );
+      } );
     // //----------------------------------------------------------------
     // this.seqMenu = this.addFolder("MNIST Sequence");
     // this.NI = 3;
