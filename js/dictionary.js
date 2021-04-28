@@ -3,8 +3,8 @@ class Dictionary extends Array {
   // Construct a dictionary of atoms of size w x h.
   constructor(w, h) {
     super();
-    this.w = w;
-    this.h = h;
+    this.w = w || 28;
+    this.h = h || 28;
     this.M = w*h;
     this.domDictionary = document.getElementById('dictionary');
     this.domOverlap = document.getElementById('overlap');
@@ -36,32 +36,69 @@ class Dictionary extends Array {
     this.length = 0;
     this.atomViews.forEach( (view) => view.clear() );
   }
-  // createOverlap(atom) {
-  //   const ni = Math.sqrt(this.M), nj = ni;
-  //   let canvas = document.createElement('canvas');
-  //   canvas.className = "filter";
-  //   canvas.width = ni;
-  //   canvas.height = nj;
-  //   let context = canvas.getContext('2d');
-  //   const idx = this.overlap.length;
-  //   this.overlap.push(context);
-  //   this.domOverlap.append(canvas);
-  // }
-  // computeOverlap(input) {
-  //   const ni = Math.sqrt(this.M), nj = ni;
-  //   for (let n=0; n<this.length; ++n) {
-  //     const atom = this[n];
-  //     let output = this.overlap[n].getImageData(0,0,ni,nj);
-  //     let min = 1000, max = 0;
-  //     for (let ij=0; ij<this.M; ++ij) {
-  //       for (let k=0; k<3; ++k) {
-  //         output.data[4*ij+k] = input.data[4*ij+k]*atom[ij];
-  //         min = Math.min(min, output.data[4*ij+k]);
-  //         max = Math.max(max, output.data[4*ij+k]);
-  //       }
-  //       output.data[4*ij+3] = 255
-  //     }
-  //     this.overlap[n].putImageData(output, 0, 0);
-  //   }
-  // }
+  // Encode a WxH buffer using atoms in the current dictionary
+  encode(buff, eps) {
+    const W = this.w, H = this.h, M = W*H;
+    eps = eps || 1e-3;
+    // Square the tolerance for faster convergence checks
+    const EPS = (eps||1)*(eps||1);
+    let S = new Set();
+    let Z = [];
+    let R = new Float32(w*h);
+    for (let m=0; m<M; ++m) {
+      R[m] = buff[m];
+    }
+    // Squares of the L2-norm of the residual
+    let E = L2Sq(this.R[c]);
+    // Transpose(A)*R (Nx1): Responses of current filters to the residual
+    let AtR = new Float32Array(N);
+    // Clear the support list
+    S.clear();
+    // Find the K most active filters
+    var k;
+    for (k=0; k<this.K && E>EPS && k<N; ++k) {
+      // Track the filter with the highest activation (initialize to
+      // the first filter that is not already in the support).
+      let nMax = 0; for (nMax=0; S.has(nMax); ++nMax) { }
+      // For each filter
+      for (let n=nMax; n<N; ++n) {
+        if (S.has(n)) continue; // Skip if filter-n has already been used
+        // Compute the filter response to the current residual
+        AtR[n] = 0.0;
+        // AtR = Tranpose(A)*R
+        for (let m=0; m<M; ++m) AtR[n] += dict[n][m]*this.R[c][m];
+        // Save an index to the filter with the strongest response
+        if (AtR[n] > AtR[nMax]) nMax = n;
+      }
+      if (AtR[nMax] > 0) {
+        S.add(nMax);
+        // Store the index of the winning filter
+        this.S[c][k] = nMax;
+        // Store the correlation coefficient for the winning filter
+        this.Z[c][k] = AtR[nMax];
+        // Update the residual by removing the contribution of the
+        // winning filter
+        for (let m=0; m<M; ++m) this.R[c][m] -= AtR[nMax]*dict[nMax][m];
+        err = L2Sq(this.R[c]);
+        if (err > E) {
+          // Adding this atom actually increased the error, remove it
+          for (let m=0; m<M; ++m) this.R[c][m] += AtR[nMax]*dict[nMax][m];
+          this.S[c][k] = -1;
+          this.Z[c][k] = 0;
+          break;
+        }
+      }
+    }
+    while (k<maxAtoms) {
+      S[c][k] = -1;
+      Z[c][k] = 0;
+      ++k;
+    }
+  }
+  L2Sq(R) {
+    let l2Sq = 0;
+    for (let m=0; m<R.length; ++m)
+      l2Sq += R[m]*R[m];
+    return l2Sq;
+  }
 };

@@ -19,6 +19,7 @@ class GUI extends dat.GUI {
 	  this.enableLearning = false;
     this.add( this, "enableLearning" )
       .onChange( function( value ) {
+        doLearning = true;
       } );
     //----------------------------------------------------------------
 	  this.numAtoms = Math.floor(dictSize*sparsity);

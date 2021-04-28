@@ -2,16 +2,18 @@
 
 const sqrt3 = Math.sqrt(3);
 const NI = 4, NJ = 4;
-const dictSize = NI*NJ*8;
+// Each patch has (28/NI)*(28/NJ) pixels, So the vector length of each atom is M
+// const M = (28/NI)*(28/NJ);
+const dictSize = 8*NI*NJ;
 const sparsity = 0.02;
 const maxAtoms = Math.floor(2*dictSize*sparsity);
+const maxSamples = 1;
 
 var camera, scene, renderer, stats, gui;
-var atlas, dictionary, sensor;
+var atlas, dictionary, sensor, mod;
 var domTarget, domDictionary;
 //--------------------------------------------------------------------
 function PSNR(A, B) {
-  let den = 0.0;
   let mse = 0.0;
   for (let i=0; i<A.length; ++i) {
     const delta = (A[i] - B[i]);
@@ -32,6 +34,8 @@ function init() {
   dictionary = new Dictionary(dx, dy, 0);
 
   sensor = new Sensor(NI, NJ);
+
+  mod = new MOD();
   
   gui = new GUI();
   
@@ -89,12 +93,16 @@ function render() {
       }
     }
     else if (gui.enableLearning) {
-      const digit = atlas.getTrainDigit();
       document.getElementById('status').innerHTML = "Updating Dictionary";
       const M = dictionary.M;
       const N = dictionary.length;
       const P = maxSamples;
-      const X = new Float32Array(N*P);
+      let samples = [];
+      for (let p=0; p<P; ++p) samples.push(atlas.getTrainDigit());
+      mod.init(dictionary);
+      const [X,Y] = mod.encodeSamples(imgData);
+      console.log(X);
+      console.log(Y);
       doLearning = false;
     }
     else {
