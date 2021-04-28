@@ -1,8 +1,3 @@
-function L2Sq(R) {
-  let l2Sq = 0;
-  for (let m=0; m<R.length; ++m) l2Sq += R[m]*R[m];
-  return l2Sq;
-}
 class Sensor extends Array {
   constructor(ni, nj) {
     super(ni*nj);
@@ -31,6 +26,8 @@ class Sensor extends Array {
     document.getElementById('residual').append(canvas);
   }
   encode(digit, dict) {
+    // For each sensor patch, encode the portion of the image at the
+    // corresponding location.
     this.forEach( function( arg ) {
       arg.encode(digit, dict);
       arg.update(dict);
@@ -119,6 +116,11 @@ class SensorPatch {
     this.ctxResidual = canvas.getContext('2d');
     domResidual.append(canvas);
   }
+  L2Sq(R) {
+    let l2Sq = 0;
+    for (let m=0; m<R.length; ++m) l2Sq += R[m]*R[m];
+    return l2Sq;
+  }
   /// Use Orthogonal Matching Pursuit algorithm to find the optimal
   /// coefficients for the current signal
   encode(img, dict, eps) {
@@ -157,7 +159,7 @@ class SensorPatch {
         this.R[c][m] = input.data[4*m+c];
       }
       // Squares of the L2-norm of the residual
-      let E = L2Sq(this.R[c]);
+      let E = this.L2Sq(this.R[c]);
       // Transpose(A)*R (Nx1): Responses of current filters to the residual
       let AtR = new Float32Array(N);
       // Clear the support list
@@ -187,7 +189,7 @@ class SensorPatch {
           // Update the residual by removing the contribution of the
           // winning filter
           for (let m=0; m<M; ++m) this.R[c][m] -= AtR[nMax]*dict[nMax][m];
-          E = L2Sq(this.R[c]);
+          E = this.L2Sq(this.R[c]);
         }
       }
       while (k<maxAtoms) {
