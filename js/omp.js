@@ -150,8 +150,8 @@ class SensorPatch {
     let x0 = this.x0;
     let y0 = this.y0;
     // console.log(this.x0, this.y0, this.dx, this.dy, img);
-    // this.ctxInput.putImageData(img, -x0, -y0, x0, y0, dx, dy);
-    this.ctxInput.putImageData(this.imgData, 0, 0);
+    this.ctxInput.putImageData(img, -x0, -y0, x0, y0, dx, dy);
+    // this.ctxInput.putImageData(this.imgData, 0, 0);
     let obj = omp.encode(this);
     this.S = obj.S;
     this.Z = obj.Z;
