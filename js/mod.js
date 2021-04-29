@@ -2,12 +2,12 @@ class MOD {
   constructor() {
     this.W = Math.floor(28/NI);
     this.H = Math.floor(28/NJ);
-    this.M = this.W*this.H;
+    this.N = this.W*this.H;
   }
   /// Initialize dictionary
   init(dict) {
-    this.N = dict.length || 2*this.M;
-    this.dict = dict || new Dictionary(Math.floor(28/NI), Math.floor(28/NJ), this.N);
+    this.M = dict.length || 2*this.N;
+    this.dict = dict || new Dictionary(Math.floor(28/NI), Math.floor(28/NJ));
     this.dict.normalize();
   }
   /// Iterate through one training cycle. Given a set of samples from
@@ -27,12 +27,12 @@ class MOD {
         for (let i=0; i<NI; ++i) {
           for (let c=0; c<3; ++c) {
             Y[3*idx+c] = new Uint8Array(W*H);
-            for (y=j*H; y<(j+1)*H; ++y) {
-              for (x=i*W; x<(i+1)*W; ++x) {
-                Y[3*idx+c][y*W+x] = imgData.data[(y*28+x)*4+c];
+            for (let y=j*H; y<(j+1)*H; ++y) {
+              for (let x=i*W; x<(i+1)*W; ++x) {
+                Y[3*idx+c][y*W+x] = img.data[(y*28+x)*4+c];
               }
             }
-            X[idx*3+c] = this.dict.encode(Y[3*idx+c]);
+            X[idx*3+c] = omp.encode(Y[3*idx+c]);
           }
         }
       }

@@ -10,7 +10,7 @@ const maxAtoms = Math.floor(2*dictSize*sparsity);
 const maxSamples = 1;
 
 var camera, scene, renderer, stats, gui;
-var atlas, dictionary, sensor, mod;
+var atlas, dictionary, sensor, mod, omp;
 var domTarget, domDictionary;
 //--------------------------------------------------------------------
 function PSNR(A, B) {
@@ -36,6 +36,8 @@ function init() {
   sensor = new Sensor(NI, NJ);
 
   mod = new MOD();
+
+  omp = new OMP();
   
   gui = new GUI();
   
@@ -54,65 +56,69 @@ let dt = DT;
 let idx = 0;
 let doLearning = false;
 function render() {
-  // Only update the once every 2 seconds
+  // Only update the display once every DT seconds
   if (dt < DT) {
     dt += clock.getDelta();
   }
-  else {
+  else if (dictionary.length < dictSize) {
     dt = 0;
-    if (dictionary.length < dictSize) {
+    if (gui.randomAtoms) {
+      document.getElementById('status').innerHTML = "Initializing dictionary with random atoms.";
+      for (let i=dictionary.length; i<dictSize; ++i) {
+        dictionary.addAtom();
+      }
+    }
+    // Initialize the dictionary with samples from the training set
+    else if (atlas.numTrain) {
+      document.getElementById('status').innerHTML = "Initializing dictionary with samples from training data set.";
       const digit = atlas.getTrainDigit();
-      document.getElementById('status').innerHTML = "Initializing Dictionary";
       const W = digit.width;
       const H = digit.height;
       const dx = dictionary.w;
       const dy = dictionary.h;
       const M = dx*dy;
       let R = new Float32Array(M);
-      for (let j=0; j<NJ; ++j) {
-        for (let i=0; i<NI; ++i) {
+      for (let y0=0; y0<H; y0+=dy) {
+        for (let x0=0; x0<W; x0+=dx) {
           // We should probably sample more than one color buffer.
           let c = 0;
           let sum = 0;
           for (let y=0, m=0; y<dy; ++y) {
             for (let x=0; x<dx; ++x, ++m) {
-              R[m] = digit.data[4*((j*dy+y)*W+(i*dx+x))+c];
+              R[m] = digit.data[4*((y0+y)*W+(x0+x))+c];
               sum += R[m];
             }
           }
-          // If the subsample of the image extracted above is blank,
-          // then just use a random atom.
-          if (gui.randomAtoms) {
-            dictionary.addAtom();
-          }
-          else if (sum > 10) {
+          if (sum > 10) { // Don't add blank atoms to dictionary
             dictionary.addAtom(new Atom(dx, dy, R));
           }
           if (dictionary.length >= dictSize) return;
         }
       }
     }
-    else if (gui.enableLearning) {
-      document.getElementById('status').innerHTML = "Updating Dictionary";
-      const M = dictionary.M;
-      const N = dictionary.length;
-      const P = maxSamples;
-      let samples = [];
-      for (let p=0; p<P; ++p) samples.push(atlas.getTrainDigit());
-      mod.init(dictionary);
-      const [X,Y] = mod.encodeSamples(imgData);
-      console.log(X);
-      console.log(Y);
-      doLearning = false;
-    }
-    else {
-      const digit = atlas.getTestDigit();
-      document.getElementById('status').innerHTML = "Encoding Samples";
-      sensor.encode(digit, dictionary);
-      sensor.render();
-      // idx++;
-      // doLearning = (idx%maxSamples == 0);
-    }
+  }
+  else if (gui.enableLearning && atlas.numTrain) {
+    dt = 0;
+    document.getElementById('status').innerHTML = "Refining dictionary with samples from training data set.";
+    const M = dictionary.M;
+    const N = dictionary.length;
+    const P = maxSamples;
+    let samples = new Array(maxSamples);
+    for (let p=0; p<P; ++p) samples[p] = atlas.getTrainDigit();
+    if (!mod.dict) mod.init(dictionary);
+    const [X,Y] = mod.encodeSamples(samples);
+    console.log(X);
+    console.log(Y);
+    doLearning = false;
+  }
+  else if (atlas.numTest) {
+    dt = 0;
+    document.getElementById('status').innerHTML = "Encoding samples from testing data set.";
+    const digit = atlas.getTestDigit();
+    sensor.encode(digit, dictionary);
+    sensor.render();
+    // idx++;
+    // doLearning = (idx%maxSamples == 0);
   }
 }
 

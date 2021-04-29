@@ -14,6 +14,25 @@ class Dictionary extends Array {
   }
   addAtom(atom) {
     if (atom===undefined) atom = new Atom(this.w, this.h);
+    // Check to see if this atom is already in the dictionary
+    for (let n=0; n<this.length; ++n) {
+      let sum = 0.0;
+      for (let m=0; m<this.M; ++m) sum += atom[m]*this[n][m];
+      // If this atom is close to one that is already in the
+      // dictionary, then average the two together.
+      if (sum > 0.99) {
+        let w = this[n].weight;
+        for (let m=0; m<this.M; ++m) {
+          this[n][m] = (w*this[n][m] + atom[m])/(w+1);
+        }
+        // For every new atom averaged-in, increase the weight
+        this[n].weight++;
+        this[n].normalize();
+        return;
+      }
+    }
+    // If this atom is not close to another existing atom, then add it
+    // to the dictionary.
     const idx = this.length;
     this[idx] = atom;
     if (this.atomViews[idx] === undefined) {
@@ -44,12 +63,12 @@ class Dictionary extends Array {
     const EPS = (eps||1)*(eps||1);
     let S = new Set();
     let Z = [];
-    let R = new Float32(w*h);
+    let R = new Float32Array(M);
     for (let m=0; m<M; ++m) {
       R[m] = buff[m];
     }
     // Squares of the L2-norm of the residual
-    let E = L2Sq(this.R[c]);
+    let E = this.L2Sq(this.R[c]);
     // Transpose(A)*R (Nx1): Responses of current filters to the residual
     let AtR = new Float32Array(N);
     // Clear the support list
