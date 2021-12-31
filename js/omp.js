@@ -1,16 +1,24 @@
 class Sensor extends Array {
   constructor(ni, nj) {
     super(ni*nj);
+    this.init(ni, nj);
+    this.initDOM();
+  }
+  init(ni, nj) {
     this.ni = ni;
     this.nj = nj;
-    const dx=28/ni, dy = 28/nj;
+    const dx=28/this.ni, dy = 28/this.nj;
     // Tile the input space with sensor patches
-    for (let j=0; j<nj; ++j) {
-      for (let i=0; i<ni; ++i) {
-        this[j*ni+i] = new SensorPatch(i*dx, j*dy, dx, dy);
+    for (let j=0; j<this.nj; ++j) {
+      for (let i=0; i<this.ni; ++i) {
+        if (this[j*ni+i] === undefined)
+          this[j*ni+i] = new SensorPatch(i*dx, j*dy, dx, dy);
+        else
+          this[j*ni+i].init(i*dx, j*dy, dx, dy);
       }
     }
-    
+  }
+  initDOM() { 
     let canvas = document.createElement('canvas');
     canvas.className = "filter";
     canvas.width = 28;
@@ -37,7 +45,7 @@ class Sensor extends Array {
     // For each sensor patch, encode the portion of the image at the
     // corresponding location.
     this.forEach( function( arg ) {
-      arg.encode(digit, dict);
+      arg.encode(digit, dict, gui.numAtoms);
       arg.decode(dict);
     } );
   }
@@ -64,12 +72,16 @@ class SensorPatch {
   /// @dx horizontal width
   /// @dy vertical height
   constructor(x0, y0, dx, dy) {
+    this.init(x0, y0, dx, dy);
+    this.initDOM();
+  }
+  init(x0, y0, dx, dy) {
     this.x0 = x0;
     this.y0 = y0;
     this.dx = dx;
     this.dy = dy;
     // Support for the representation (list of activated atoms for each color)
-    this.K = Math.floor(dictSize*sparsity);
+    this.K = gui.numAtoms || Math.floor(dictSize*sparsity);
     this.R = []; // Residual in each color band
     this.S = []; // Atom support in each color band
     this.Z = []; // Atom coefficients in each color band
@@ -78,6 +90,8 @@ class SensorPatch {
       this.S[c] = new Uint8Array(maxAtoms);
       this.Z[c] = new Float32Array(maxAtoms);
     }
+  }
+  initDOM() {
     // Create canvas objects to show the decomposed signal
     var canvas;
     const domTable = document.getElementById('omp-output');
@@ -87,8 +101,8 @@ class SensorPatch {
     domRow.append(domInput);
     canvas = document.createElement('canvas');
     canvas.className = "filter";
-    canvas.width = dx;
-    canvas.height = dy;
+    canvas.width = this.dx;
+    canvas.height = this.dy;
     this.ctxInput = canvas.getContext('2d');
     domInput.append(canvas);
     // Create canvas objects to show the decomposed signal
@@ -100,8 +114,8 @@ class SensorPatch {
     for (let k=0; k<maxAtoms; ++k) {
       canvas = document.createElement('canvas');
       canvas.className = "filter";
-      canvas.width = dx;
-      canvas.height = dy;
+      canvas.width = this.dx;
+      canvas.height = this.dy;
       this.ctxAtoms[k] = canvas.getContext('2d');
       domAtoms.append(canvas);
     }
@@ -109,8 +123,8 @@ class SensorPatch {
     const domSignal = document.createElement('td');
     domRow.append(domSignal);
     canvas = document.createElement('canvas');
-    canvas.width = dx;
-    canvas.height = dy;
+    canvas.width = this.dx;
+    canvas.height = this.dy;
     canvas.className = "filter";
     this.ctxSignal = canvas.getContext('2d');
     domSignal.append(canvas);
@@ -118,8 +132,8 @@ class SensorPatch {
     const domResidual = document.createElement('td');
     domRow.append(domResidual);
     canvas = document.createElement('canvas');
-    canvas.width = dx;
-    canvas.height = dy;
+    canvas.width = this.dx;
+    canvas.height = this.dy;
     canvas.className = "filter";
     this.ctxResidual = canvas.getContext('2d');
     domResidual.append(canvas);

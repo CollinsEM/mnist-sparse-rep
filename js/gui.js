@@ -22,6 +22,21 @@ class GUI extends dat.GUI {
         doLearning = true;
       } );
     //----------------------------------------------------------------
+	  this.numSplits = 4;
+    this.add( this, "numSplits", [1,2,4,7] )
+      .onChange( function( value ) {
+        NI = value;
+        NJ = value;
+        var w = 28/NI;
+        var h = 28/NJ;
+        dictionary.clear();
+        dictionary.w = w;
+        dictionary.h = h;
+        dictionary.M = w*h;
+        sensor.init(NI, NJ);
+        dt = DT; // Force a graphics update
+      } );
+    //----------------------------------------------------------------
 	  this.numAtoms = Math.floor(dictSize*sparsity);
     this.add( this, "numAtoms", 1, maxAtoms, 1 )
       .onChange( function( value ) {

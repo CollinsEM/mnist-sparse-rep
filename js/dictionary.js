@@ -3,47 +3,60 @@ class Dictionary extends Array {
   // Construct a dictionary of atoms of size w x h.
   constructor(w, h) {
     super();
-    this.w = w || 28;
-    this.h = h || 28;
-    this.M = w*h;
+    this.w = w || Math.floor(28/NI) || 7;// atom width
+    this.h = h || Math.floor(28/NJ) || 7;// atom height
+    this.M = w*h;      // size of each atom
+    this.K = maxAtoms; // maximum number of atoms in each reconstruction
+    // DOM element for displaying all atoms in the dictionary
     this.domDictionary = document.getElementById('dictionary');
-    this.domOverlap = document.getElementById('overlap');
+    // DOM elements for displaying each individual atom
     this.atomViews = new Array();
     // Keep track of how often each atom gets used
     this.dutyCycle = new Array();
   }
   addAtom(atom) {
-    if (atom===undefined) atom = new Atom(this.w, this.h);
-    // Check to see if this atom is already in the dictionary
+    if (this.length >= dictSize)
+      console.warn("Exceeded maximum number of recommended atoms.");
+    if (this.length >= 2*dictSize)
+      return;
+    // Find the atom in the existing dictionary that is closest to
+    // this one
+    let q = null, dq = 0;
     for (let n=0; n<this.length; ++n) {
       let sum = 0.0;
       for (let m=0; m<this.M; ++m) sum += atom[m]*this[n][m];
-      // If this atom is close to one that is already in the
-      // dictionary, then average the two together.
-      if (sum > 0.99) {
-        let w = this[n].weight;
-        for (let m=0; m<this.M; ++m) {
-          this[n][m] = (w*this[n][m] + atom[m])/(w+1);
-        }
-        // For every new atom averaged-in, increase the weight
-        this[n].weight++;
-        this[n].normalize();
-        return;
+      if (q === null || sum > dq) {
+        q = n;  dq = sum;
       }
     }
-    // If this atom is not close to another existing atom, then add it
-    // to the dictionary.
-    const idx = this.length;
-    this[idx] = atom;
-    if (this.atomViews[idx] === undefined) {
-      let view = new AtomView(atom);
-      view.render();
-      this.atomViews[idx] = view;
-      this.domDictionary.appendChild(view.canvas);
+    // If atom is close enough to one that is already in the
+    // dictionary, then average the two together. Increase the weight
+    // of the existing atom everytime it is combined with another.
+    if (dq > 0.95) {
+      let w = this[q].weight;
+      for (let m=0; m<this.M; ++m) {
+        this[q][m] = (w*this[q][m] + atom[m])/(w+1);
+      }
+      // For every new atom averaged-in, increase the weight
+      this[n].weight++;
+      this[n].normalize();
+      this.atomViews[n].atom = this[n];
+      this.atomViews[n].render();
     }
+    // Otherwise, add the new atom to the dictionary.
     else {
-      this.atomViews[idx].atom = atom;
-      this.atomViews[idx].render();
+      const idx = this.length;
+      this[idx] = atom;
+      if (this.atomViews[idx] === undefined) {
+        let view = new AtomView(atom);
+        view.render();
+        this.atomViews[idx] = view;
+        this.domDictionary.appendChild(view.canvas);
+      }
+      else {
+        this.atomViews[idx].atom = atom;
+        this.atomViews[idx].render();
+      }
     }
   }
   normalize() {
@@ -63,11 +76,10 @@ class Dictionary extends Array {
     const EPS = (eps||1)*(eps||1);
     let S = new Set();
     let Z = [];
+    // Allocate and initialize residual buffer
     let R = new Float32Array(M);
-    for (let m=0; m<M; ++m) {
-      R[m] = buff[m];
-    }
-    // Squares of the L2-norm of the residual
+    for (let m=0; m<M; ++m) R[m] = buff[m];
+    // Current residual energy (square of the L2-norm of the residual)
     let E = this.L2Sq(this.R[c]);
     // Transpose(A)*R (Nx1): Responses of current filters to the residual
     let AtR = new Float32Array(N);

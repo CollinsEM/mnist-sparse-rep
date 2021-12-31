@@ -1,7 +1,7 @@
 "use strict";
 
 const sqrt3 = Math.sqrt(3);
-const NI = 4, NJ = 4;
+let NI = 4, NJ = 4;
 // Each patch has (28/NI)*(28/NJ) pixels, So the vector length of each atom is M
 // const M = (28/NI)*(28/NJ);
 const dictSize = 8*NI*NJ;
@@ -29,6 +29,8 @@ window.addEventListener( 'load', init, false );
 function init() {
   const dx = 28/NI, dy = 28/NJ;
   
+  gui = new GUI();
+  
   atlas = new Atlas();
   
   dictionary = new Dictionary(dx, dy, 0);
@@ -38,8 +40,6 @@ function init() {
   mod = new MOD();
 
   omp = new OMP();
-  
-  gui = new GUI();
   
   animate();
 }
@@ -56,16 +56,23 @@ let dt = DT;
 let idx = 0;
 let doLearning = false;
 function render() {
+  const dx = dictionary.w;
+  const dy = dictionary.h;
   // Only update the display once every DT seconds
   if (dt < DT) {
     dt += clock.getDelta();
+    return;
   }
-  else if (dictionary.length < dictSize) {
+  else {
+    if (!atlas.numTrain) console.warn("Training images not loaded.");
+    if (!atlas.numTest) console.warn("Testing images not loaded.");
+  }
+  if (!gui.enableLearning && dictionary.length < dictSize) {
     dt = 0;
     if (gui.randomAtoms) {
       document.getElementById('status').innerHTML = "Initializing dictionary with random atoms.";
       for (let i=dictionary.length; i<dictSize; ++i) {
-        dictionary.addAtom();
+        dictionary.addAtom(new Atom(dx, dy));
       }
     }
     // Initialize the dictionary with samples from the training set
@@ -74,8 +81,6 @@ function render() {
       const digit = atlas.getTrainDigit();
       const W = digit.width;
       const H = digit.height;
-      const dx = dictionary.w;
-      const dy = dictionary.h;
       const M = dx*dy;
       let R = new Float32Array(M);
       for (let y0=0; y0<H; y0+=dy) {
