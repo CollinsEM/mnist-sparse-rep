@@ -19,23 +19,29 @@ class GUI extends dat.GUI {
 	  this.enableLearning = false;
     this.add( this, "enableLearning" )
       .onChange( function( value ) {
-        doLearning = true;
+        doLearning = value;
       } );
     //----------------------------------------------------------------
-	  this.numSplits = 4;
-    this.add( this, "numSplits", [1,2,4,7] )
+	  this.learningRate = eta;
+    this.add( this, "learningRate", 0, 1, 0.01 )
       .onChange( function( value ) {
-        NI = value;
-        NJ = value;
-        var w = 28/NI;
-        var h = 28/NJ;
-        dictionary.clear();
-        dictionary.w = w;
-        dictionary.h = h;
-        dictionary.M = w*h;
-        sensor.init(NI, NJ);
-        dt = DT; // Force a graphics update
+        eta = value;
       } );
+    //----------------------------------------------------------------
+	  // this.numSplits = 4;
+    // this.add( this, "numSplits", [1,2,4,7] )
+    //   .onChange( function( value ) {
+    //     NI = value;
+    //     NJ = value;
+    //     var w = 28/NI;
+    //     var h = 28/NJ;
+    //     dictionary.clear();
+    //     dictionary.w = w;
+    //     dictionary.h = h;
+    //     dictionary.M = w*h;
+    //     sensor.init(NI, NJ);
+    //     dt = DT; // Force a graphics update
+    //   } );
     //----------------------------------------------------------------
 	  this.numAtoms = Math.floor(dictSize*sparsity);
     this.add( this, "numAtoms", 1, maxAtoms, 1 )
@@ -48,7 +54,7 @@ class GUI extends dat.GUI {
         } );
         dt = DT; // Force a graphics update
       } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
     // this.seqMenu = this.addFolder("MNIST Sequence");
     // this.NI = 3;
     // this.seqMenu.add( this, "NI", 1, 5, 1 )
@@ -60,49 +66,49 @@ class GUI extends dat.GUI {
     //   .onChange( function( value ) {
     //     if (value != seqView.NJ) seqView.resize( gui.NI, gui.NJ );
     //   } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
 	  // this.showNeurons = true;
 	  // this.add( this, "showNeurons" )
     //   .onChange( function( value ) {
     //     cortexView.camera.layers.toggle(neuronLayer);
     //   } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
 	  // this.showColumns = true;
 	  // this.add( this, "showColumns" )
     //   .onChange( function( value ) {
     //     cortexView.camera.layers.toggle(columnLayer);
     //   } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
 	  // this.showMiniColumns = true;
 	  // this.add( this, "showMiniColumns" )
     //   .onChange( function( value ) {
     //     cortexView.camera.layers.toggle(miniColumnLayer);
     //   } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
 	  // this.showProxDendrites = false;
-	  // // this.add( this, "showProxDendrites" )
-    // //   .onChange( function( value ) {
-    // //     cortexView.camera.layers.toggle(proximalLayer);
-    // //   } );
-    // //----------------------------------------------------------------
+	  // this.add( this, "showProxDendrites" )
+    //   .onChange( function( value ) {
+    //     cortexView.camera.layers.toggle(proximalLayer);
+    //   } );
+    //----------------------------------------------------------------
 	  // this.showApical = false;
-	  // // this.add( this, "showApical" )
-    // //   .onChange( function( value ) {
-    // //     cortexView.camera.layers.toggle(apicalLayer);
-    // //   } );
-    // //----------------------------------------------------------------
+	  // this.add( this, "showApical" )
+    //   .onChange( function( value ) {
+    //     cortexView.camera.layers.toggle(apicalLayer);
+    //   } );
+    //----------------------------------------------------------------
 	  // this.saccade = true;
 	  // this.add( this, "saccade" )
     //   .onChange( function( value ) {
     //     cortex.allowSaccades( value );
     //   } );
-    // //----------------------------------------------------------------
-	  // // this.gabor = true;
-	  // // this.add( this, "gabor" );
-	  // // this.add( this, "gabor" )
-    // //   .onChange( function( value ) {
-    // //   } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
+	  // this.gabor = true;
+	  // this.add( this, "gabor" );
+	  // this.add( this, "gabor" )
+    //   .onChange( function( value ) {
+    //   } );
+    //----------------------------------------------------------------
 	  // this.numNeurons = numNeurons;
 	  // this.add( this, "numNeurons", 0, maxNeurons, 1 )
     //   .onChange( function( value ) {
@@ -112,7 +118,7 @@ class GUI extends dat.GUI {
     //       } );
     //     } );
 	  //   } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
 	  // this.numColumns = maxColumns;
 	  // this.add( this, "numColumns", 1, maxColumns, 1 )
     //   .onChange( function( value ) {
@@ -120,7 +126,7 @@ class GUI extends dat.GUI {
     //       col.visible = (idx < gui.numColumns);
     //     } );
 	  //   } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
     // this.opacity = 0.2;
 	  // this.add( this, "opacity", 0, 1, 0.01 )
     //   .onChange( function( value ) {
@@ -130,35 +136,35 @@ class GUI extends dat.GUI {
     //       } );
     //     } );
 	  //   } );
-    // //----------------------------------------------------------------
+    //----------------------------------------------------------------
     // this.sensorRadius = 3;
 	  // this.add( this, "sensorRadius", 1, maxSensorRadius, 0.5 );
-    // //----------------------------------------------------------------
-    // // this.moving = false;
-	  // // this.add( this, "moving" );
-    // //----------------------------------------------------------------
-	  // // this.limitSynapses = false;
-    // //----------------------------------------------------------------
-	  // // this.maxSynapses = 20;
-    // //----------------------------------------------------------------
-	  // // this.maxProximalDist = maxProximalDistance;
-    // //----------------------------------------------------------------
-    // // this.numProximalDend = numProximalDendrites;
-    // //------------------------------------
-    // // this.prox = this.addFolder('Proximal');
-	  // // this.prox.add( this, "numProximalDend", 1, maxProximalDendrites, 1 )
-    // //   .onChange( function( value ) {
-    // //     numProximalDendrites = value;
-    // //     computeProximalSynapses();
-    // //   } );
-	  // // this.prox.add( this, "maxProximalDist", 100, 300 )
-    // //   .onChange( function( value ) {
-    // //     maxProximalDistance = value;
-    // //     computeProximalSynapses();
-    // //   } );
-    // //----------------------------------------------------------------
-    // // DISTAL
-    // //------------------------------------
+    //----------------------------------------------------------------
+    // this.moving = false;
+	  // this.add( this, "moving" );
+    //----------------------------------------------------------------
+	  // this.limitSynapses = false;
+    //----------------------------------------------------------------
+	  // this.maxSynapses = 20;
+    //----------------------------------------------------------------
+	  // this.maxProximalDist = maxProximalDistance;
+    //----------------------------------------------------------------
+    // this.numProximalDend = numProximalDendrites;
+    //------------------------------------
+    // this.prox = this.addFolder('Proximal');
+	  // this.prox.add( this, "numProximalDend", 1, maxProximalDendrites, 1 )
+    //   .onChange( function( value ) {
+    //     numProximalDendrites = value;
+    //     computeProximalSynapses();
+    //   } );
+	  // this.prox.add( this, "maxProximalDist", 100, 300 )
+    //   .onChange( function( value ) {
+    //     maxProximalDistance = value;
+    //     computeProximalSynapses();
+    //   } );
+    //----------------------------------------------------------------
+    // DISTAL
+    //------------------------------------
     // this.distal = this.addFolder('Distal');
     // //------------------------------------
 	  // this.distal.show = false;

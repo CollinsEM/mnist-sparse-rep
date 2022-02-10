@@ -33,15 +33,7 @@ class Dictionary extends Array {
     // dictionary, then average the two together. Increase the weight
     // of the existing atom everytime it is combined with another.
     if (dq > 0.95) {
-      let w = this[q].weight;
-      for (let m=0; m<this.M; ++m) {
-        this[q][m] = (w*this[q][m] + atom[m])/(w+1);
-      }
-      // For every new atom averaged-in, increase the weight
-      this[n].weight++;
-      this[n].normalize();
-      this.atomViews[n].atom = this[n];
-      this.atomViews[n].render();
+      this.updateAtom(q, atom);
     }
     // Otherwise, add the new atom to the dictionary.
     else {
@@ -58,6 +50,17 @@ class Dictionary extends Array {
         this.atomViews[idx].render();
       }
     }
+  }
+  updateAtom(q, atom) {
+    let w = this[q].weight;
+    for (let m=0; m<this.M; ++m) {
+      this[q][m] = (w*this[q][m] + eta*atom[m])/(w+eta);
+    }
+    // For every new atom averaged-in, increase the weight
+    this[q].weight += eta;
+    this[q].normalize();
+    this.atomViews[q].atom = this[q];
+    this.atomViews[q].render();
   }
   normalize() {
     this.forEach( function( atom ) {
@@ -86,8 +89,9 @@ class Dictionary extends Array {
     // Clear the support list
     S.clear();
     // Find the K most active filters
+    var K = gui.numAtoms;
     var k;
-    for (k=0; k<this.K && E>EPS && k<N; ++k) {
+    for (k=0; k<K && E>EPS && k<N; ++k) {
       // Track the filter with the highest activation (initialize to
       // the first filter that is not already in the support).
       let nMax = 0; for (nMax=0; S.has(nMax); ++nMax) { }
