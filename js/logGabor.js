@@ -24,7 +24,7 @@ class LogGaborFilter extends Array {
     this.canvas.addEventListener('click', this.onMouseClick(this));
     this.canvas.addEventListener('mousemove', this.onMouseMove(this));
     
-    this.context = this.canvas.getContext('2d');
+    this.context = this.canvas.getContext( '2d', { willReadFrequently: true } );
     this.context.imageSmoothingEnabled = false;
     
     document.getElementById('atoms').appendChild(this.canvas);

@@ -23,14 +23,14 @@ class Sensor extends Array {
     canvas.className = "filter";
     canvas.width = 28;
     canvas.height = 28;
-    this.context = canvas.getContext('2d');
+    this.context = canvas.getContext( '2d', { willReadFrequently: true } );
     document.getElementById('output-signal').append(canvas);
     
     canvas = document.createElement('canvas');
     canvas.className = "filter";
     canvas.width = 28;
     canvas.height = 28;
-    this.residual = canvas.getContext('2d');
+    this.residual = canvas.getContext( '2d', { willReadFrequently: true } );
     document.getElementById('residual').append(canvas);
   }
   encode(digit, dict) {
@@ -103,7 +103,7 @@ class SensorPatch {
     canvas.className = "filter";
     canvas.width = this.dx;
     canvas.height = this.dy;
-    this.ctxInput = canvas.getContext('2d');
+    this.ctxInput = canvas.getContext( '2d', { willReadFrequently: true } );
     domInput.append(canvas);
     // Create canvas objects to show the decomposed signal
     const domAtoms = document.createElement('td');
@@ -116,7 +116,7 @@ class SensorPatch {
       canvas.className = "filter";
       canvas.width = this.dx;
       canvas.height = this.dy;
-      this.ctxAtoms[k] = canvas.getContext('2d');
+      this.ctxAtoms[k] = canvas.getContext( '2d', { willReadFrequently: true } );
       domAtoms.append(canvas);
     }
     // Create a canvas for the reconstructed signal
@@ -126,7 +126,7 @@ class SensorPatch {
     canvas.width = this.dx;
     canvas.height = this.dy;
     canvas.className = "filter";
-    this.ctxSignal = canvas.getContext('2d');
+    this.ctxSignal = canvas.getContext( '2d', { willReadFrequently: true } );
     domSignal.append(canvas);
     // Create a canvas for the residual
     const domResidual = document.createElement('td');
@@ -135,7 +135,7 @@ class SensorPatch {
     canvas.width = this.dx;
     canvas.height = this.dy;
     canvas.className = "filter";
-    this.ctxResidual = canvas.getContext('2d');
+    this.ctxResidual = canvas.getContext( '2d', { willReadFrequently: true } );
     domResidual.append(canvas);
   }
   L2Sq(R) {

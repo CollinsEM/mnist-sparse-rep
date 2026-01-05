@@ -17,7 +17,7 @@ class Atlas {
     this.canvas = document.createElement( 'canvas' );
     this.canvas.width = 28;
     this.canvas.height = 28;
-    this.context = this.canvas.getContext('2d');
+    this.context = this.canvas.getContext( '2d', { willReadFrequently: true } );
     this.dom = document.getElementById('input-signal');
     this.dom.appendChild(this.canvas);
     this.canvas.onclick = function( event ) { atlas.getTrainDigit(); };
@@ -44,7 +44,7 @@ function trainImageLoaded(event) {
   atlas.numTrain = atlas.trainImage.naturalWidth/28;
   console.log("Number of samples of each digit in training set: ", atlas.numTrain);
   // let canvas = document.createElement("canvas");
-  // let context = canvas.getContext("2d");
+  // let context = canvas.getContext( '2d', { willReadFrequently: true } );
   // canvas.width = this.naturalWidth;
   // canvas.height = this.naturalHeight;
   // context.drawImage(this, 0, 0);
@@ -61,7 +61,7 @@ function testImageLoaded(event) {
   atlas.numTest  = atlas.testImage.naturalWidth/28;
   console.log("Number of samples of each digit in testing set: ", atlas.numTest);
   // let canvas = document.createElement("canvas");
-  // let context = canvas.getContext("2d");
+  // let context = canvas.getContext( '2d', { willReadFrequently: true } );
   // canvas.width = this.naturalWidth;
   // canvas.height = this.naturalHeight;
   // context.drawImage(this, 0, 0);
